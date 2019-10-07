@@ -1,0 +1,6 @@
+appName=Python Spark PostgreSQL
+connector=connectors/postgresql-42.2.8.jar
+url=jdbc:postgresql://localhost:5432/
+user=postgres
+password=root
+database=ssb_sf10
