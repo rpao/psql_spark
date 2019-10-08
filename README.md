@@ -6,3 +6,4 @@ Executar com PostgreSQL connector:
 
 	2. Comando para executar no cmd (com memory_profiler):
 		python -m memory_profiler psql_spark.py
+		python -m mprof run psql_spark.py

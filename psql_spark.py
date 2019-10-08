@@ -1,64 +1,74 @@
-import memory_profiler
 import findspark
 findspark.init()
 
+import pyspark
 from pyspark.sql import SparkSession
 
-def loadSesson(appName, connector):
-    spark = SparkSession \
-    .builder \
-    .appName(appName) \
-    .config("spark.jars", connector) \
-    .getOrCreate()
-    return spark
+def loadTable(table, session):
+    ## User information
+    user     = 'postgres'
+    password = 'root'
+    dataset = 'ssb_sf1'
 
-@profile
-def loadTable(table):
-    df = None
+    ## Database information
+    url = 'jdbc:postgresql://localhost:5432/' + dataset + '?user=' + user + '&password=' + password
+    properties ={'driver': 'org.postgresql.Driver', 'password': password,'user': user}
+
     try:
-"""         df = spark.read \
-            .format("jdbc") \
-            .option("url",  url + database) \
-            .option("dbtable", dbtable) \
-            .option("user", user) \
-            .option("password", password) \
-            .option("driver", driver) \
-            .load() """
-        properties = {'driver':driver, 'password':password, 'user':user}
+        time.sleep(1)
         df = spark.read.jdbc(url=url, table=table, properties=properties)
-        print("loadTable(): Success!")
-    except:
-        print("loadTable(): Error! [PostgresSql (databaseURL = " + url + database +
-         " user = " + user +
-         "password = " + password +
-         "dbtable = " + dbtable + ")]")
-    finally:
-        return df
-
-## READ CONFIG
-configs = open("config.txt", "r")
-appName = configs.readline().replace('\n','').replace('\0','').split('=')[1]
-connector = configs.readline().replace('\n','').replace('\0','').split('=')[1]
-driver = configs.readline().replace('\n','').replace('\0','').split('=')[1]
-url = configs.readline().replace('\n','').replace('\0','').split('=')[1]
-user = configs.readline().replace('\n','').replace('\0','').split('=')[1]
-password = configs.readline().replace('\n','').replace('\0','').split('=')[1]
-database = configs.readline().replace('\n','').replace('\0','').split('=')[1]
-configs.close()
-
-print ('Configs:' + 
-       '\n--------'
-        '\nappName: ' + appName + 
-        '\nconnector: ' + connector +
-        '\nurlDB: ' + url +
-        '\nuser: ' + user +
-        '\npassword: ' + password +
-        '\ndatabase: ' + database)
+        time.sleep(1)
+        if (df == None):
+            print ('Table ' + table + ' is empty!')
+            return None
         
-spark = loadSesson(appName, connector)
-lineorder_df = loadTable("lineorder")
+        ## table info
+        print('Table ' + table + ' infos:')
+        print('Number of lines: ', df.count(),'\nSchema:')
+        print(df.printSchema())
+        df.show(5)
 
-if (lineorder_df != None):
-    print(lineorder_df.printSchema())
+        ## convert from RDD
+        time.sleep(1)
+        rdd = df.rdd
+        print('loadTable('+table+'): Success!')
+        time.sleep(1)
 
-exit()
+        return rdd
+    except:
+        print('loadTable('+table+'): Error!')
+        return None
+
+def main():
+    ## create spark session
+    spark = SparkSession \
+        .builder \
+        .appName('Postgres Spark') \
+        .config('spark.jars', 'connectors/postgresql-42.2.8.jar') \
+        .getOrCreate()
+
+    rdd_c = loadTable('customer', spark)
+    if (rdd_c == None):
+        print ('Customer is empty!')
+        return None
+
+    rdd_s = loadTable('supplier', spark)
+    if (rdd_s == None):
+        print ('Supplier is empty!')
+        return None
+
+    rdd_c.persist(pyspark.StorageLevel.MEMORY_ONLY)
+    print('Customer - Total Rows: ', rdd_c.count())
+
+    rdd_s.persist(pyspark.StorageLevel.MEMORY_ONLY)
+    print('Total Rows: ', rdd_s.count())
+
+    filter_rdd = rdd_c.filter( lambda x : x.c_nation.replace(' ','') == 'MOROCCO')
+    print('Customer filter c_nation == MOROCCO - Total Rows: ', filter_rdd.count())
+
+    rdd_c.unpersist()
+    rdd_s.unpersist()
+
+main()
+
+exit(0)
