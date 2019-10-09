@@ -14,30 +14,7 @@ from pyspark.sql import SparkSession
 #logging.basicConfig(level=#logging.DEBUG,
 #                    format='(%(threadName)-9s) %(message)s',)
 
-def loadTable(table, session):
-    ## User information
-    user     = 'postgres'
-    password = 'root'
-    dataset = 'ssb_sf1'
-
-    ## Database information
-    url = 'jdbc:postgresql://localhost:5432/' + dataset + '?user=' + user + '&password=' + password
-    properties ={'driver': 'org.postgresql.Driver', 'password': password,'user': user}
-
-    try:
-        df = spark.read.jdbc(url=url, table=table, properties=properties)
-        if (df == None):
-            return None
-
-        ## convert from RDD
-        rdd = df.rdd
-        return rdd
-
-    except:
-        #logging.debug('loadTable('+table+'): Error!\n')
-        return None
-
-def monitor(e):
+def monitor(e, fileName):
     #logging.debug("CPU and Memory Monitor - Making thread\n")
     print("CPU and Memory Monitor - Making thread\n")
     
@@ -60,11 +37,12 @@ def monitor(e):
     #logging.debug("CPU and Memory Monitor - Ending thread\n")
     print("CPU and Memory Monitor - Ending thread\n")
 
-    nameFile = 'relatorio'+str(startTime)
+    nameFile = 'relatorio_'+ fileName + '_' + str(startTime)
     nameFile = nameFile.replace(' ','_').replace('.','_').replace(':','_') + '.txt'
 
     finalFile = open(nameFile, "w")
     finalFile.writelines( relatorio )
+    relatorio = []
     finalFile.close()
 
 def stopMonitor(e):
@@ -143,32 +121,34 @@ def spark(e):
     e.set()
 
 if __name__ == '__main__':
-    QTD_ITERATION = 20
+    QTD_ITERATION = 5
 
     ## Create monitor memory and cpu usage pattern
-    for (i=0; i < QTD_ITERATION; i++):
+    for i in range(0,QTD_ITERATION):
         e = threading.Event()
 
         monitorTh = threading.Thread(name='blocking', 
                         target=monitor,
-                        args=(e,))
+                        args=(e,'monitor'))
         monitorTh.start()
 
         stopMonitorTh = threading.Thread(name='non-blocking', 
                         target=stopMonitor, 
                         args=(e,))
         stopMonitorTh.start()
+
+        time.sleep(6000)
     
     ## Create spark memory and cpu usage pattern
-    for (i=0; i < QTD_ITERATION; i++):
-        e = threading.Event()
+    # for i in range(0,QTD_ITERATION):
+    #     e = threading.Event()
 
-        monitorTh = threading.Thread(name='blocking', 
-                        target=monitor,
-                        args=(e,))
-        monitorTh.start()
+    #     monitorTh = threading.Thread(name='blocking', 
+    #                     target=monitor,
+    #                     args=(e,'spark'))
+    #     monitorTh.start()
 
-        sparkTh = threading.Thread(name='non-blocking', 
-                        target=spark, 
-                        args=(e,))
-        sparkTh.start()
+    #     sparkTh = threading.Thread(name='non-blocking', 
+    #                     target=spark, 
+    #                     args=(e,))
+    #     sparkTh.start()
