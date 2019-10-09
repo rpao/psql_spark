@@ -6,8 +6,7 @@ import datetime
 if __name__ == '__main__':
     try:
         print("CPU and Memory Monitor\nstarted...")
-        
-        nameFile = 'monitoring_' + str(datetime.datetime.now())
+        nameFile = 'relatorios/monitoring/relatorio' + str(datetime.datetime.now())
         nameFile = nameFile.replace(' ','_').replace('.','_').replace(':','_') + '.csv'
 
         finalFile = open(nameFile, "w")

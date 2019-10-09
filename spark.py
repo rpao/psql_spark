@@ -7,8 +7,11 @@ import pyspark
 from pyspark.sql import SparkSession
 
 if __name__ == '__main__':
+    nameFile = 'relatorios/spark/relatorio.csv'
+    
+    finalFile = open(nameFile, "w")
     dataTime = datetime.datetime.now()
-    print("Spark - Starting at " + str(dataTime) + "\n")
+    finalFile.write('Spark - Starting at ' + str(dataTime) + '\n')
 
     ## create spark session
     spark = SparkSession \
@@ -55,6 +58,7 @@ if __name__ == '__main__':
     spark.stop()
 
     dataTime = datetime.datetime.now()
-    print("Spark - Ending at " + str(dataTime) + "\n")
+    finalFile.write('Spark - Ending at ' + str(dataTime) + '\n')
+    finalFile.close()
 
     exit()
