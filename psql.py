@@ -1,8 +1,6 @@
 from sys import getsizeof
-import memory_profiler
 import psycopg2
 
-@profile
 def main():
     conn = psycopg2.connect('dbname=ssb_sf1 user=postgres password=root')
     cur = conn.cursor()
