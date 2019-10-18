@@ -10,35 +10,47 @@ def loadSql(file_name):
 
 if __name__ == '__main__':
     try:
-        print('Starting PSQL...')
-        dt = str(datetime.datetime.now()).split('.')[0].replace('-','').replace(' ','').replace(':','')
-        nameFile = 'relatorios/postgres/relatorio_'+ dt +'.csv'
-        
-        finalFile = open(nameFile, "w")
-        finalFile.write('PSQL - Starting at ' + str(datetime.datetime.now()) + '\n')
+        files = ['queries/q1.sql', 'queries/q2.sql', 'queries/q3.sql', 'queries/q4.sql']
+        numIter = 20
 
-        numIter = 1
-        conn = psycopg2.connect('dbname=ssb_sf1 user=postgres password=root')
-        cur = conn.cursor()
+        print("Start PostgreSQL...")
 
-        finalFile.write('PSQL - Quering at ' + str(datetime.datetime.now()) + '\n')
-        for iter in range(0,numIter):
-            for sqlFile in ['q1.sql', 'q2.sql', 'q3.sql', 'q4.sql']:
-                queries = loadSql(sqlFile)
-                for query in queries:
+        ## executar o script para cada arquivo
+        for sqlFile in files:
+            ## abrir o arquivo .sql
+            queries = loadSql(sqlFile)
+            
+            ## abrir conexão com o banco
+            conn = psycopg2.connect('dbname=ssb_sf1 user=postgres password=root')
+            cur = conn.cursor()
+
+            ## para cada query
+            q = 1
+            for query in queries:
+                ## cria o arquivo de relatório
+                dt = str(datetime.datetime.now()).split('.')[0].replace('-','').replace(' ','').replace(':','')
+                nameFile = 'relatorios/postgres/relatorio_' + sqlFile.split('/')[1].split('.')[0] + str(q) + '_' + dt +'.csv'
+                finalFile = open(nameFile, "w")
+                
+                ## para numIter iterações, executa a query
+                for i in range(0,numIter):
+                    dtStart = datetime.datetime.now()
                     cur.execute(query)
-                    cur.fetchall()    
-        
-        finalFile.write('PSQL - Ending at ' + str(datetime.datetime.now()) + '\n')
-        cur.close()
-        conn.close()
-        print('Ending PSQL...')
+                    cur.fetchall()
+                    dtEnd = datetime.datetime.now()
+                    finalFile.write(str(i) + ', ' + str(dtStart).split('.')[0] + ',' + str(dtEnd).split('.')[0] + '\n')
+                
+                ## fechar o arquivo
+                finalFile.close()
+                q += 1
+
+            ## fechar conexão com o banco
+            cur.close()
+            conn.close()
+        print("End PostgreSQL...")
     except KeyboardInterrupt:
         print("aborting...")
-        finalFile.write('PSQL - aborting at ' + str(datetime.datetime.now()) + '\n')
     except Exception as e:
         print(e)
-        finalFile.write('PSQL - error at ' + str(datetime.datetime.now()) + '\n')
     finally:
-        finalFile.close()
         exit()
