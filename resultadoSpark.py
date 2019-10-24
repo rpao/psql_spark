@@ -1,5 +1,3 @@
-import datetime
-
 import findspark
 findspark.init()
 
@@ -8,27 +6,13 @@ from pyspark.sql import SparkSession
 
 if __name__ == '__main__':
     try:
-        print("Start Spark...")
-
-        ## arquivos: q1.sql, q2.sql, q3.sql, q4.sql; 
-        sqlfile = open('queries/q1.sql','r')
+        sqlFile = open('queries/qs.sql', 'r')
         queries = []
-        for row in sqlfile.readlines():
+        for row in sqlFile.readlines():
             queries.append(row.replace(';',''))
-        
-        query = queries[0]
-        numIter = 20
+        sqlFile.close()
 
-        ## User information
-        user     = 'postgres'
-        password = 'root'
-        dataset = 'ssb_sf1'
-
-        dt = str(datetime.datetime.now()).split('.')[0].replace('-','').replace(' ','').replace(':','')
-        resfile = open('relatorios/spark/sf1Q11'+dt+'.csv','w')
-        resfile.write('iter,start,end\n')
-
-        ## create spark session
+        ## abrir conexão com o banco
         spark = SparkSession \
             .builder \
             .appName('Postgres Spark') \
@@ -39,35 +23,41 @@ if __name__ == '__main__':
             .config('spark.driver.memory','10g') \
             .getOrCreate()
 
+        ## User information
+        user     = 'postgres'
+        password = 'root'
+        dataset = 'ssb_sf10'
+
         ## Database information
         url = 'jdbc:postgresql://localhost:5432/' + dataset + '?user=' + user + '&password=' + password
         properties = {'driver': 'org.postgresql.Driver', 'password': password,'user': user}
         
-        ## load tables
+        ## carregar tabelas
         df_customer = spark.read.jdbc(url=url, table='customer', properties=properties)
         df_date = spark.read.jdbc(url=url, table='date', properties=properties)
         df_lineorder = spark.read.jdbc(url=url, table='lineorder', properties=properties)
         df_part = spark.read.jdbc(url=url, table='part', properties=properties)
         df_supplier = spark.read.jdbc(url=url, table='supplier', properties=properties)
 
-        ## temp tables
+        ## criar tempViews
         df_customer.createOrReplaceTempView("customer")
         df_date.createOrReplaceTempView("date")
         df_lineorder.createOrReplaceTempView("lineorder")
         df_part.createOrReplaceTempView("part")
         df_supplier.createOrReplaceTempView("supplier")
 
-        ## for numIter iterations
-        for i in range(numIter):
-            dtStart = datetime.datetime.now()
-            res = spark.sql(query)
-            dtEnd = datetime.datetime.now()
-            resfile.write(str(i) + ',' + str(dtStart).split('.')[0] + ',' + str(dtEnd).split('.')[0] + '\n')
-        spark.stop()        
-        print("End Spark...")
-    except KeyboardInterrupt:
-        print("aborting...")
+        ## para cada query, guarda o resultado
+        q = 1
+        for query in queries:
+            print("Executando Q"+str(q))
+            resfile = open('relatorios/resultadoQuerySpark/resSF10Q'+str(q)+'.csv', "w")
+            res = spark.sql(query).collect()
+            for row in res:
+                resfile.write(str(row)+'\n')
+            resfile.close()
+            q += 1
+
+        spark.stop()
     except Exception as e:
         print(e)
-    finally:
-        exit()
+
