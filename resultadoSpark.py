@@ -48,15 +48,16 @@ if __name__ == '__main__':
 
         ## para cada query, guarda o resultado
         q = 1
+        res = []
         for query in queries:
             print("Executando Q"+str(q))
-            resfile = open('relatorios/resultadoQuerySpark/resSF10Q'+str(q)+'.csv', "w")
-            res = spark.sql(query).collect()
-            for row in res:
-                resfile.write(str(row)+'\n')
+            nf = 'relatorios/resultadoQuerySpark/res_SF10_Q'+str(q)+'.csv'
+            r = spark.sql(query).collect()
+            resfile = open(nf, "w")
+            for row in r:
+                resfile.write(str(row))
             resfile.close()
             q += 1
-
         spark.stop()
     except Exception as e:
         print(e)
