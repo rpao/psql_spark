@@ -1,0 +1,7 @@
+Row(sum(lo_revenue)=569294998.0, d_year=1992, p_brand1='MFGR#2221')
+Row(sum(lo_revenue)=549307863.0, d_year=1993, p_brand1='MFGR#2221')
+Row(sum(lo_revenue)=512661262.0, d_year=1994, p_brand1='MFGR#2221')
+Row(sum(lo_revenue)=498948039.0, d_year=1995, p_brand1='MFGR#2221')
+Row(sum(lo_revenue)=570293504.0, d_year=1996, p_brand1='MFGR#2221')
+Row(sum(lo_revenue)=489472321.0, d_year=1997, p_brand1='MFGR#2221')
+Row(sum(lo_revenue)=334744227.0, d_year=1998, p_brand1='MFGR#2221')

@@ -4,53 +4,54 @@ import datetime
 
 if __name__ == '__main__':
     try:
-        timeSleep = 300 # cinco minutos
-        time.sleep(timeSleep)
-
-        ## configuração do banco
-        user     = 'postgres'
-        password = 'root'
-        dataset = 'ssb_sf10'
-
-        confConnection = 'dbname='+dataset+' user=' + user + ' password=' + password
+        t = 60
+        a = 3
+        q = 2
+        sf = 'sf10'
+        
+        time.sleep(3*t) ## esperar dois minutos antes de iniciar
 
         print("Start Psql...")
+
+        ## User information
+        user     = 'postgres'
+        password = 'root'
+        dataset  = 'ssb_'+sf
+
+        confConnection = 'dbname='+dataset+' user=' + user + ' password=' + password
         
-        a = 1
         numIter = 20
-        arquivos = ['queries/q1.sql', 'queries/q2.sql', 'queries/q3.sql', 'queries/q4.sql'] 
-        for arquivo in arquivos:
-            sqlfile = open(arquivo,'r')
-            queries = []
-            for row in sqlfile.readlines():
-                queries.append(row.replace(';',''))
-            
-            q = 1
-            for query in queries:
-                ## abrir conexão com o banco
-                conn = psycopg2.connect(confConnection)
-                cur = conn.cursor()
+        arquivos = ['queries/q1.sql', 'queries/q2.sql', 'queries/q3.sql', 'queries/q4.sql']
 
-                dt = str(datetime.datetime.now()).split('.')[0].replace('-','').replace(' ','').replace(':','')
-                resfile = open('relatorios/postgres/'+dataset+'_q'+str(a)+str(q)+'_'+dt+'.csv','w')
-                resfile.write('iter,start,end\n')
+        sqlfile = open(arquivos[a],'r')
+        queries = []
+        for row in sqlfile.readlines():
+            queries.append(row.replace(';',''))
+        
+        query = queries[q]
 
-                for i in range(numIter):
-                    dtStart = datetime.datetime.now()
-                    cur.execute(query)
-                    ## como não há collect no spark, psql não usa fetch
-                    dtEnd = datetime.datetime.now()
-                    resfile.write(str(i) + ', ' + str(dtStart) + ',' + str(dtEnd) + '\n')
+        ## abrir conexão com o banco
+        conn = psycopg2.connect(confConnection)
+        cur = conn.cursor()
 
-                resfile.close()
+        resfile = open('relatorios/psql/'+sf+'/q'+str(a+1)+str(q+1)+'_iteracoes.csv','w')
+        resfile.write('iter,start,end\n')
 
-                ## fechar conexão com o banco
-                cur.close()
-                conn.close()
-                
-                q += 1
-                time.sleep(timeSleep)
-            a += 1
+        for i in range(numIter):
+            dtStart = datetime.datetime.now()
+            cur.execute(query)
+            ## como não há collect no spark, psql não usa fetch
+            dtEnd = datetime.datetime.now()
+            resfile.write(str(i) + ', ' + str(dtStart) + ',' + str(dtEnd) + '\n')
+
+        resfile.close()
+
+        ## fechar conexão com o banco
+        cur.close()
+        conn.close()
+
+        time.sleep(t) ## esperar dois minutos antes de iniciar
+        
         print("End PostgreSQL...")
     except KeyboardInterrupt:
         print("aborting...")

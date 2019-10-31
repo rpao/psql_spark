@@ -1,0 +1,3 @@
+Row(c_city='UNITED KI1', s_city='UNITED KI1', d_year=1997, revenue=10583759.0)
+Row(c_city='UNITED KI1', s_city='UNITED KI5', d_year=1997, revenue=3951644.0)
+Row(c_city='UNITED KI5', s_city='UNITED KI1', d_year=1997, revenue=1489432.0)

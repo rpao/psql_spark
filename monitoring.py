@@ -6,8 +6,13 @@ import datetime
 if __name__ == '__main__':
     try:
         print("CPU and Memory Monitor\nstarted...")
-        dt = str(datetime.datetime.now()).split('.')[0].replace('-','').replace(' ','').replace(':','')
-        nameFile = 'relatorios/monitoring/relatorio_'+ dt +'.csv'
+        
+        sf = 'sf10'
+        fw = 'spark'
+        a = 3
+        q = 2
+        
+        nameFile = 'relatorios/'+fw+'/'+sf+'/monitoring_q'+str(a+1)+str(q+1)+'.csv'
         
         finalFile = open(nameFile, "w")
         finalFile.write('datatime,cpuPercent,usedMB,memPercent\n')            
